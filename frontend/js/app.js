@@ -1,4 +1,8 @@
-const API_BASE = 'http://localhost:8000';
+// Automatically dynamically structure API paths for Local VS Vercel Deployment
+const API_BASE = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost"
+    ? 'http://127.0.0.1:8000'
+    : window.location.origin;
+
 let productsGlobal = [];
 
 // Enforce Auth
