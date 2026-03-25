@@ -26,8 +26,31 @@
             <div class="text-center mt-3 small text-muted">
                 Demo Credentials: <br> admin / admin
             </div>
+            
+            <hr class="my-4">
+            <h6 class="text-center text-muted mb-3 pb-2">Or sign in with Public IDP</h6>
+            
+            <div class="d-flex justify-content-center mb-2">
+                <div id="g_id_onload"
+                     data-client_id="YOUR_GOOGLE_CLIENT_ID_HERE.apps.googleusercontent.com"
+                     data-context="signin"
+                     data-ux_mode="popup"
+                     data-callback="handleCredentialResponse"
+                     data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-shape="rectangular"
+                     data-theme="outline"
+                     data-text="sign_in_with"
+                     data-size="large"
+                     data-logo_alignment="left">
+                </div>
+            </div>
+            
         </div>
     </div>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="js/app.js"></script>
     <script>
         document.getElementById('loginForm').addEventListener('submit', function(e) {
