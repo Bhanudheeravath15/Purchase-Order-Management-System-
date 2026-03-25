@@ -32,7 +32,8 @@ async function loadOrders() {
             return;
         }
 
-        orders.forEach(order => {
+        // Reverse the array so the newest orders appear at the top
+        orders.reverse().forEach(order => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td class="fw-bold">${order.reference_no}</td>
