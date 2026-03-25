@@ -30,3 +30,13 @@ A microservice-based Purchase Order (PO) Management System featuring a Python/Fa
 - **Problem Solving**: Complex "Add Row" form handling via pure JavaScript DOM manipulation without convoluted frameworks.
 
 *Note: For the best assessment experience, PostgreSQL was substituted with SQLite so no external database installation or Docker configuration is strictly required to run your copy.*
+
+## Deployment to GitHub
+This project has already been initialized as a clean local Git repository. To host your code on GitHub/GitLab as requested by the assignment:
+1. Create a new empty repository on your GitHub account.
+2. Open your terminal in this project folder and run:
+   ```bash
+   git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
+   git branch -M main
+   git push -u origin main
+   ```
