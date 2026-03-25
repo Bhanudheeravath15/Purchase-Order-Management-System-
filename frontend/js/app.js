@@ -57,7 +57,7 @@ async function loadOrders() {
                 <td>${new Date(order.created_at).toLocaleString()}</td>
                 <td>
                     <button class="btn btn-sm btn-outline-primary me-1" onclick="viewOrder('${order.reference_no}')">View</button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder(${order.id})">Delete</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder('${order.reference_no}')">Delete</button>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -300,18 +300,18 @@ function logout() {
     window.location.href = 'login.html';
 }
 
-async function deleteOrder(id) {
+async function deleteOrder(refNo) {
     if(confirm("Are you sure you want to completely delete this Purchase Order?")) {
         try {
-            const response = await fetch(`${API_BASE}/orders/${id}`, {
+            const response = await fetch(`${API_BASE}/orders/${refNo}`, {
                 method: 'DELETE',
                 headers: getAuthHeaders()
             });
             // If Vercel wiped the DB, it returns 404 Not Found. We should still successfully delete it from user's screen!
             if(response.ok || response.status === 404) {
-                // Remove from the Vercel LocalStorage fallback backup
+                // Remove exclusively by unique UUID reference!
                 let localBackup = JSON.parse(localStorage.getItem('vercel_orders_backup')) || [];
-                localBackup = localBackup.filter(o => o.id !== id);
+                localBackup = localBackup.filter(o => o.reference_no !== refNo);
                 localStorage.setItem('vercel_orders_backup', JSON.stringify(localBackup));
                 
                 loadOrders(); // Refresh table
@@ -319,7 +319,7 @@ async function deleteOrder(id) {
                 alert("Failed to delete the order.");
             }
         } catch(err) {
-            console.error(err);
+            console.error("Deletion API Error", err);
         }
     }
 }

@@ -72,8 +72,8 @@ def update_po_status(db: Session, po_id: int, status: str):
         db.refresh(db_po)
     return db_po
 
-def delete_purchase_order(db: Session, po_id: int):
-    db_po = db.query(models.PurchaseOrder).filter(models.PurchaseOrder.id == po_id).first()
+def delete_purchase_order_by_ref(db: Session, ref_no: str):
+    db_po = db.query(models.PurchaseOrder).filter(models.PurchaseOrder.reference_no == ref_no).first()
     if db_po:
         db.delete(db_po)
         db.commit()

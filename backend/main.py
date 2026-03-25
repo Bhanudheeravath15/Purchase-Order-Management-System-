@@ -95,9 +95,9 @@ def read_order(po_id: int, db: Session = Depends(get_db), token: str = Depends(o
         raise HTTPException(status_code=404, detail="Order not found")
     return db_po
 
-@app.delete("/orders/{po_id}")
-def delete_order(po_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
-    success = crud.delete_purchase_order(db, po_id=po_id)
+@app.delete("/orders/{ref_no}")
+def delete_order(ref_no: str, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    success = crud.delete_purchase_order_by_ref(db, ref_no=ref_no)
     if not success:
         raise HTTPException(status_code=404, detail="Order not found")
     return {"message": "Order successfully deleted"}
