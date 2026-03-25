@@ -33,6 +33,12 @@ if os.path.exists(frontend_path):
 class AIRequest(BaseModel):
     product_name: str
 
+from fastapi.responses import RedirectResponse
+
+@app.get("/")
+def read_root():
+    return RedirectResponse(url="/app/login.html")
+
 @app.post("/token")
 def login(username: str = Form(...), password: str = Form(...)):
     # Mocking JWT token logic satisfying Assignment Authentication Rules
