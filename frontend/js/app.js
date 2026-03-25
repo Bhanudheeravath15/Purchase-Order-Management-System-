@@ -283,23 +283,3 @@ async function deleteOrder(id) {
         }
     }
 }
-
-// Public IDP Integration (Assignment Requirement 2.d)
-async function handleCredentialResponse(response) {
-    try {
-        const res = await fetch(`${API_BASE}/auth/google`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: response.credential })
-        });
-        if(res.ok) {
-            const data = await res.json();
-            localStorage.setItem('token', data.access_token);
-            window.location.href = 'index.html';
-        } else {
-            alert("To fully activate Google Sign-In, please inject a genuine Client ID in the source code!");
-        }
-    } catch(err) {
-        alert("API Connection Error during Google Sign-In");
-    }
-}

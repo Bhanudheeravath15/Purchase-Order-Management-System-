@@ -53,30 +53,6 @@ def login(username: str = Form(...), password: str = Form(...)):
         return {"access_token": "mocked-jwt-token-7382", "token_type": "bearer"}
     raise HTTPException(status_code=400, detail="Incorrect username or password")
 
-class GoogleToken(BaseModel):
-    token: str
-
-@app.post("/auth/google")
-def google_auth(token_req: GoogleToken):
-    """
-    Public IDP Implementation (Requirement 2.d).
-    The frontend creates a Google JWT using Google Identity Services. We verify the signature here.
-    """
-    from google.oauth2 import id_token
-    from google.auth.transport import requests as google_requests
-
-    CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID_HERE.apps.googleusercontent.com"
-    try:
-        # Note: If CLIENT_ID is a dummy string, this verification will fail in live environments.
-        # This code is fully compliant with Public IDP guidelines.
-        idinfo = id_token.verify_oauth2_token(token_req.token, google_requests.Request(), CLIENT_ID)
-        userid = idinfo['sub']
-        return {"access_token": f"jwt-for-google-user-{userid}", "token_type": "bearer"}
-    except ValueError as e:
-        # For assignment execution: Google Cloud was not configured, fail gracefully.
-        print(f"Google Token Verification Failed: {e}")
-        raise HTTPException(status_code=401, detail="Invalid Google IDP Token")
-
 @app.post("/ai/generate-description")
 def generate_description(req: AIRequest, token: str = Depends(oauth2_scheme)):
     # Simulated Gen-AI response (so external API key setup isn't mandatory for the evaluator)
