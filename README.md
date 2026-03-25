@@ -11,7 +11,15 @@ A microservice-based Purchase Order (PO) Management System featuring a Python/Fa
 - **Dynamic Frontend**: Modern responsive Bootstrap UI with Vanilla JS for adding multiple PO items dynamically.
 - **Automatic Calculations**: 5% tax calculated automatically dynamically on the frontend during row additions.
 
-## How to Run the Project
+## How to View the Live Project
+
+You do not need to install or run anything locally. The project is fully deployed and hosted on Vercel:
+- **Main Application:** [https://purchase-order-management-system-w8vy.vercel.app](https://purchase-order-management-system-w8vy.vercel.app)
+- **Interactive API Documentation (Swagger UI):** [https://purchase-order-management-system-w8vy.vercel.app/docs](https://purchase-order-management-system-w8vy.vercel.app/docs)
+
+---
+
+## How to Run Locally (For Development)
 
 1. **Start the Backend API**
    The backend is fully configured with its virtual environment in `backend\venv`. Open a terminal, navigate into `backend`, activate the environment, and spin up the Uvicorn server:
@@ -20,7 +28,7 @@ A microservice-based Purchase Order (PO) Management System featuring a Python/Fa
    .\venv\Scripts\Activate.ps1
    uvicorn main:app --reload
    ```
-   *Note*: The database is pre-seeded via `seed.py`. You can explore the interactive API documentation at: [http://localhost:8000/docs](http://localhost:8000/docs)
+   *Note*: The local database is pre-seeded via `seed.py`. You can explore the local interactive API documentation at: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 2. **Launch the Frontend Application**
    Simply open `frontend/index.html` in your favorite web browser. 
