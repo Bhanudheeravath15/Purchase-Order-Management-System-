@@ -56,7 +56,7 @@ async function loadOrders() {
                 <td><span class="badge bg-secondary p-2">${order.status}</span></td>
                 <td>${new Date(order.created_at).toLocaleString()}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-primary me-1" onclick="alert('View Details functionality is stubbed.\\nPO: ${order.reference_no}')">View</button>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="viewOrder('${order.reference_no}')">View</button>
                     <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder(${order.id})">Delete</button>
                 </td>
             `;
@@ -67,6 +67,45 @@ async function loadOrders() {
         document.getElementById('poTableBody').innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error connecting to server.</td></tr>';
     }
 }
+
+// --- NEW MODAL VIEW FUNCTION --- //
+function viewOrder(refNo) {
+    let localBackup = JSON.parse(localStorage.getItem('vercel_orders_backup')) || [];
+    const order = localBackup.find(o => o.reference_no === refNo);
+    if(order) {
+        const modalBody = document.getElementById('poModalBody');
+        modalBody.innerHTML = `
+            <div class="mb-3 border-bottom pb-2">
+                <div class="small text-muted text-uppercase mb-1">Reference No</div>
+                <div class="fw-bold fs-5 text-primary">${order.reference_no}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-6">
+                    <div class="small text-muted text-uppercase mb-1">Vendor</div>
+                    <div class="fw-bold">${order.vendor.name}</div>
+                </div>
+                <div class="col-6">
+                    <div class="small text-muted text-uppercase mb-1">Status</div>
+                    <div><span class="badge bg-secondary p-2">${order.status}</span></div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="small text-muted text-uppercase mb-1">Created At</div>
+                <div>${new Date(order.created_at).toLocaleString()}</div>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="text-muted fw-bold">Total Amount</div>
+                <div class="text-success fw-bold fs-4">$${order.total_amount.toFixed(2)}</div>
+            </div>
+        `;
+        const modal = new bootstrap.Modal(document.getElementById('viewPoModal'));
+        modal.show();
+    } else {
+        alert("Order details not found locally.");
+    }
+}
+// ------------------------------- //
 
 async function loadVendors() {
     try {
@@ -268,8 +307,9 @@ async function deleteOrder(id) {
                 method: 'DELETE',
                 headers: getAuthHeaders()
             });
-            if(response.ok) {
-                // Also remove from the Vercel LocalStorage fallback backup
+            // If Vercel wiped the DB, it returns 404 Not Found. We should still successfully delete it from user's screen!
+            if(response.ok || response.status === 404) {
+                // Remove from the Vercel LocalStorage fallback backup
                 let localBackup = JSON.parse(localStorage.getItem('vercel_orders_backup')) || [];
                 localBackup = localBackup.filter(o => o.id !== id);
                 localStorage.setItem('vercel_orders_backup', JSON.stringify(localBackup));
