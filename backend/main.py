@@ -24,7 +24,8 @@ app.add_middleware(
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 frontend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend"))
-app.mount("/app", StaticFiles(directory=frontend_path, html=True), name="frontend")
+if os.path.exists(frontend_path):
+    app.mount("/app", StaticFiles(directory=frontend_path, html=True), name="frontend")
 
 class AIRequest(BaseModel):
     product_name: str
