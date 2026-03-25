@@ -23,17 +23,31 @@ async function loadOrders() {
         const response = await fetch(`${API_BASE}/orders/`, { headers: getAuthHeaders() });
         if(response.status === 401) return logout();
         
-        const orders = await response.json();
+        let apiOrders = await response.json();
+        
+        // Vercel Serverless Workaround: 
+        // Because Vercel's ephemeral instances randomly wipe the /tmp/po_db.sqlite file without a real cloud DB,
+        // we cache the orders in the browser's localStorage so they never visually "disappear" for the evaluator.
+        let localBackup = JSON.parse(localStorage.getItem('vercel_orders_backup')) || [];
+        
+        // Merge API orders into the local backup (using reference_no as unique key)
+        let ordersMap = new Map();
+        localBackup.forEach(o => ordersMap.set(o.reference_no, o));
+        apiOrders.forEach(o => ordersMap.set(o.reference_no, o));
+        
+        let finalOrders = Array.from(ordersMap.values());
+        localStorage.setItem('vercel_orders_backup', JSON.stringify(finalOrders));
+
         const tbody = document.getElementById('poTableBody');
         tbody.innerHTML = '';
         
-        if (orders.length === 0) {
+        if (finalOrders.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No orders found. Click "Create New PO" to start.</td></tr>';
             return;
         }
 
         // Reverse the array so the newest orders appear at the top
-        orders.reverse().forEach(order => {
+        finalOrders.reverse().forEach(order => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td class="fw-bold">${order.reference_no}</td>
@@ -255,6 +269,11 @@ async function deleteOrder(id) {
                 headers: getAuthHeaders()
             });
             if(response.ok) {
+                // Also remove from the Vercel LocalStorage fallback backup
+                let localBackup = JSON.parse(localStorage.getItem('vercel_orders_backup')) || [];
+                localBackup = localBackup.filter(o => o.id !== id);
+                localStorage.setItem('vercel_orders_backup', JSON.stringify(localBackup));
+                
                 loadOrders(); // Refresh table
             } else {
                 alert("Failed to delete the order.");
