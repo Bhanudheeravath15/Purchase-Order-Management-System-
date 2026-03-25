@@ -1,7 +1,7 @@
 # ERP PO Management System
 
-**🔗 Live Dashboard Application Link:** [http://127.0.0.1:8000/app/login.html](http://127.0.0.1:8000/app/login.html)
-*(Ensure the Python backend server is running in your terminal to click this local link!)*
+**🔗 Live Dashboard Application Link:** [https://purchase-order-management-system-w8vy.vercel.app](https://purchase-order-management-system-w8vy.vercel.app)
+*(The project is securely deployed and hosted on Vercel)*
 
 A microservice-based Purchase Order (PO) Management System featuring a Python/FastAPI backend, SQLite database, and a responsive frontend built with HTML5, Vanilla JS, and Bootstrap.
 
