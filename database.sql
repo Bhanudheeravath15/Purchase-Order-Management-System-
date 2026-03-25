@@ -33,4 +33,4 @@ CREATE TABLE purchase_order_items (
     price_at_purchase FLOAT NOT NULL
 );
 
--- Note: In this project, Python SQLAlchemy automates mapping this logic gracefully onto SQLite.
+-- Note: In this project, Python SQLAlchemy automates mapping this logic gracefully onto PostgreSQL via psycopg2.
