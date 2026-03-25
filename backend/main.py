@@ -14,6 +14,13 @@ from typing import List
 
 models.Base.metadata.create_all(bind=engine)
 
+try:
+    import seed
+    seed.seed_db()
+except Exception as e:
+    print(f"Auto-seeding skipped or failed: {e}")
+
+
 app = FastAPI(title="PO Management System API")
 
 app.add_middleware(
