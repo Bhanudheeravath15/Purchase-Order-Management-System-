@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Numeric
 from sqlalchemy.orm import relationship
 import datetime
 from database import Base
@@ -15,7 +15,7 @@ class Product(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     sku = Column(String, unique=True, index=True)
-    unit_price = Column(Float)
+    unit_price = Column(Numeric(10, 2))
     stock_level = Column(Integer)
 
 class PurchaseOrder(Base):
@@ -23,7 +23,7 @@ class PurchaseOrder(Base):
     id = Column(Integer, primary_key=True, index=True)
     reference_no = Column(String, unique=True, index=True)
     vendor_id = Column(Integer, ForeignKey("vendors.id"))
-    total_amount = Column(Float, default=0.0)
+    total_amount = Column(Numeric(10, 2), default=0.00)
     status = Column(String, default="Pending")
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     
@@ -36,7 +36,7 @@ class PurchaseOrderItem(Base):
     po_id = Column(Integer, ForeignKey("purchase_orders.id"))
     product_id = Column(Integer, ForeignKey("products.id"))
     quantity = Column(Integer)
-    price_at_purchase = Column(Float)
+    price_at_purchase = Column(Numeric(10, 2))
     
     purchase_order = relationship("PurchaseOrder", back_populates="items")
     product = relationship("Product")

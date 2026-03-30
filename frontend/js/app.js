@@ -5,6 +5,14 @@ const API_BASE = window.location.hostname === "127.0.0.1" || window.location.hos
 
 let productsGlobal = [];
 
+// --- Handle OAuth Redirect Token ---
+const urlParams = new URLSearchParams(window.location.search);
+const tokenFromUrl = urlParams.get('token');
+if (tokenFromUrl) {
+    localStorage.setItem('token', tokenFromUrl);
+    window.location.href = 'index.html'; // Clear URL
+}
+
 // Enforce Auth
 if (!window.location.pathname.endsWith('login.html')) {
     if (!localStorage.getItem('token')) {
@@ -25,34 +33,21 @@ async function loadOrders() {
         
         let apiOrders = await response.json();
         
-        // Vercel Serverless Workaround: 
-        // Because Vercel's ephemeral instances randomly wipe the /tmp/po_db.sqlite file without a real cloud DB,
-        // we cache the orders in the browser's localStorage so they never visually "disappear" for the evaluator.
-        let localBackup = JSON.parse(localStorage.getItem('vercel_orders_backup')) || [];
-        
-        // Merge API orders into the local backup (using reference_no as unique key)
-        let ordersMap = new Map();
-        localBackup.forEach(o => ordersMap.set(o.reference_no, o));
-        apiOrders.forEach(o => ordersMap.set(o.reference_no, o));
-        
-        let finalOrders = Array.from(ordersMap.values());
-        localStorage.setItem('vercel_orders_backup', JSON.stringify(finalOrders));
-
         const tbody = document.getElementById('poTableBody');
         tbody.innerHTML = '';
         
-        if (finalOrders.length === 0) {
+        if (apiOrders.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No orders found. Click "Create New PO" to start.</td></tr>';
             return;
         }
 
         // Reverse the array so the newest orders appear at the top
-        finalOrders.reverse().forEach(order => {
+        apiOrders.reverse().forEach(order => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td class="fw-bold">${order.reference_no}</td>
                 <td>${order.vendor.name}</td>
-                <td class="text-success fw-bold">$${order.total_amount.toFixed(2)}</td>
+                <td class="text-success fw-bold">$${parseFloat(order.total_amount).toFixed(2)}</td>
                 <td><span class="badge bg-secondary p-2">${order.status}</span></td>
                 <td>${new Date(order.created_at).toLocaleString()}</td>
                 <td>
@@ -62,6 +57,10 @@ async function loadOrders() {
             `;
             tbody.appendChild(tr);
         });
+        
+        // Save to global for View Modal
+        window.currentOrders = apiOrders;
+        
     } catch(err) {
         console.error("Error loading orders", err);
         document.getElementById('poTableBody').innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error connecting to server.</td></tr>';
@@ -70,8 +69,7 @@ async function loadOrders() {
 
 // --- NEW MODAL VIEW FUNCTION --- //
 function viewOrder(refNo) {
-    let localBackup = JSON.parse(localStorage.getItem('vercel_orders_backup')) || [];
-    const order = localBackup.find(o => o.reference_no === refNo);
+    const order = (window.currentOrders || []).find(o => o.reference_no === refNo);
     if(order) {
         const modalBody = document.getElementById('poModalBody');
         modalBody.innerHTML = `
@@ -96,7 +94,7 @@ function viewOrder(refNo) {
             <hr>
             <div class="d-flex justify-content-between align-items-center mt-3">
                 <div class="text-muted fw-bold">Total Amount</div>
-                <div class="text-success fw-bold fs-4">$${order.total_amount.toFixed(2)}</div>
+                <div class="text-success fw-bold fs-4">$${parseFloat(order.total_amount).toFixed(2)}</div>
             </div>
         `;
         const modal = new bootstrap.Modal(document.getElementById('viewPoModal'));
@@ -140,8 +138,8 @@ function calculateRowTotal(selectElement) {
     if (productSelect.value) {
         const prod = productsGlobal.find(p => p.id == productSelect.value);
         if (prod) {
-            row.querySelector('.price-display').innerText = '$' + prod.unit_price.toFixed(2);
-            row.querySelector('.row-total').innerText = '$' + (prod.unit_price * qtyInput.value).toFixed(2);
+            row.querySelector('.price-display').innerText = '$' + parseFloat(prod.unit_price).toFixed(2);
+            row.querySelector('.row-total').innerText = '$' + (parseFloat(prod.unit_price) * qtyInput.value).toFixed(2);
         }
     } else {
         row.querySelector('.price-display').innerText = '$0.00';
@@ -206,7 +204,7 @@ async function generateAIDescription(btn) {
     
     const productName = select.options[select.selectedIndex].text.split('(')[0].trim();
     const descDiv = row.querySelector('.ai-desc');
-    descDiv.innerText = "Generating AI description...";
+    descDiv.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
     
     try {
         const response = await fetch(`${API_BASE}/ai/generate-description`, {
@@ -261,7 +259,8 @@ async function submitOrder() {
             alert('Purchase Order Created Successfully!');
             window.location.href = 'index.html';
         } else {
-            alert('Failed to create Purchase Order.');
+            const err = await response.json();
+            alert('Failed to create Purchase Order: ' + (err.detail || 'Internal Error'));
         }
     } catch(err) {
         console.error(err);
@@ -269,30 +268,8 @@ async function submitOrder() {
     }
 }
 
-async function performLogin() {
-    const un = document.getElementById('username').value;
-    const pw = document.getElementById('password').value;
-    
-    const formData = new URLSearchParams();
-    formData.append('username', un);
-    formData.append('password', pw);
-    
-    try {
-        const response = await fetch(`${API_BASE}/token`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData
-        });
-        if(response.ok) {
-            const data = await response.json();
-            localStorage.setItem('token', data.access_token);
-            window.location.href = 'index.html';
-        } else {
-            alert("Invalid Credentials. Default is username: admin, password: admin");
-        }
-    } catch(err) {
-        alert("Server connection error during login.");
-    }
+async function performOAuthLogin() {
+    window.location.href = `${API_BASE}/auth/login/google`;
 }
 
 function logout() {
@@ -307,16 +284,11 @@ async function deleteOrder(refNo) {
                 method: 'DELETE',
                 headers: getAuthHeaders()
             });
-            // If Vercel wiped the DB, it returns 404 Not Found. We should still successfully delete it from user's screen!
-            if(response.ok || response.status === 404) {
-                // Remove exclusively by unique UUID reference!
-                let localBackup = JSON.parse(localStorage.getItem('vercel_orders_backup')) || [];
-                localBackup = localBackup.filter(o => o.reference_no !== refNo);
-                localStorage.setItem('vercel_orders_backup', JSON.stringify(localBackup));
-                
+            if(response.ok) {
                 loadOrders(); // Refresh table
             } else {
-                alert("Failed to delete the order.");
+                const err = await response.json();
+                alert(`Failed to delete the order: ${err.detail}`);
             }
         } catch(err) {
             console.error("Deletion API Error", err);

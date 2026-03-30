@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
+from decimal import Decimal
 
 class VendorBase(BaseModel):
     name: str
@@ -18,7 +19,7 @@ class VendorOut(VendorBase):
 class ProductBase(BaseModel):
     name: str
     sku: str
-    unit_price: float
+    unit_price: Decimal
     stock_level: int
 
 class ProductCreate(ProductBase):
@@ -41,7 +42,7 @@ class POItemOut(BaseModel):
     id: int
     product_id: int
     quantity: int
-    price_at_purchase: float
+    price_at_purchase: Decimal
     product: ProductOut
     class Config:
         from_attributes = True
@@ -50,7 +51,7 @@ class POOut(BaseModel):
     id: int
     reference_no: str
     vendor_id: int
-    total_amount: float
+    total_amount: Decimal
     status: str
     created_at: datetime
     vendor: VendorOut
